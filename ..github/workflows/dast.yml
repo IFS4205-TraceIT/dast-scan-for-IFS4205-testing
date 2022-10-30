@@ -1,0 +1,39 @@
+name: DAST
+on:
+  workflow_dispatch:
+    inputs:
+      repo_name:
+        type: choice
+        description: Which repo would you like to scan?
+        required: true
+        options: 
+        - tracer
+        - research
+        - contact
+
+jobs:
+  dast:
+    name: OWASP ZAP API scan
+    runs-on: cd-test
+
+    steps:
+
+      - name: Cleanup folder
+        run: |
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+
+      - name: Clone repository
+        uses: actions/checkout@v3        
+      
+      - name: Echo targeted backend
+        run: |
+          echo "Running on ${{ inputs.repo_name }} API"
+        
+      - name: Run ZAP API Scan
+        uses: zaproxy/action-api-scan@v0.1.1
+        with:
+          docker_name: 'owasp/zap2docker-stable'
+          format: openapi
+          target: ${{ inputs.repo_name }}-openapi-schema.yml
+          cmd_options: '-a'
